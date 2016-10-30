@@ -1,7 +1,3 @@
-function numeric(a, b) {
-	return a-b;
-}
-
 function isInRange(num, lower, upper) {
 	
 	if (num === undefined) throw "Number is undefined";
@@ -23,13 +19,13 @@ function randomInt(min, max, steps) {
 	
 	if (steps === undefined) {
 		
-		return Math.floor( ( Math.random() * max - min + 1) + min );
+		return Math.floor(Math.random() * (max - min + 1)) + min;
 		
 	} else {
 		
 		var range = [];
 		
-		for (var i = min; i < max; i+=steps) {
+		for (var i = min; i < max+1; i+=steps) {
 			range.push(i);
 		}
 		

@@ -1,6 +1,6 @@
 Array.prototype.fill = function(fillWith, fillFrom, fillCount) {
 	
-	if (fillWith === undefined) throw "Fill with is undefined";
+	if (fillWith === undefined) fillWith = null;
 	if (fillFrom === undefined) fillFrom = 0;
 	if (fillCount === undefined) fillCount = this.length-1;
 	
@@ -44,7 +44,7 @@ Array.prototype.insert = function(values, index) {
 		
 	} else if (typeof values === 'object') {
 		
-		throw "Unsupported data type";
+		throw "Objects are not supported";
 		
 	} else {
 		
@@ -87,7 +87,7 @@ function unique(arr) {
 	}
 	
 	return unique;
-	
+
 }
 
 function duplicates(arr, includeAll) {
@@ -121,7 +121,7 @@ function sum(arr) {
 	
 	for (var i = 0; i < arr.length; i++) {
 		
-		if (isNaN(arr[i])) throw "Array not only contains numbers";
+		if (isNaN(arr[i])) throw "Invalid data type in array";
 		
 		sum += parseInt(arr[i]);
 		
@@ -151,53 +151,27 @@ function isIdentical(arr1, arr2) {
 	
 }
 
-function min(arr, nth) {
+function min(arr) {
 	
 	var min = arr[0];
+
+	for (var i = 1; i < arr.length; i++) {
+		
+		if (min > arr[i]) min = arr[i];
+		
+	}
 	
-	if (nth === undefined) {
-		
-		for (var i = 1; i < arr.length; i++) {
-			
-			if (min > arr[i]) min = arr[i];
-			
-		}
-		
-		return min;
-		
-	} else {
-		
-		nth -= 1;
-		
-		var uniques = unique(arr);
-		var duplication = [];
-		duplication.fill(0, 0, uniques.length);
-		uniques.sort(numeric);
-		
-		for (var i = 1; i < uniques.length; i++) {
-			duplication[i] = count(arr, uniques[i]);
-		}
-		
-		if (nth > uniques.length-1) nth = uniques.length-1;
-		
-		return uniques[nth];
-		// Sort with count
-		
-	}	
+	return min;
 	
 }
 
-function max(arr, nth) {
+function max(arr) {
 	
 	var max = arr[0];
-	
-	if (nth === undefined) {
 		
-		for (var i = 1; i < arr.length; i++) {
-			
-			if (max < arr[i]) max = arr[i];
-			
-		}
+	for (var i = 1; i < arr.length; i++) {
+		
+		if (max < arr[i]) max = arr[i];
 		
 	}
 	
@@ -205,43 +179,39 @@ function max(arr, nth) {
 	
 }
 
-function mostCommon(arr, nth) {
+function mostCommon(arr) {
+
+	arr.sort(numeric);
+	var currentDuplicationCount = 1;
+	var maxDuplicationCount = 1;
+	var maxDuplicationNumber;
+	var maxDuplicationNumber = arr[0];
 	
-	if (nth === undefined) {
+	for (var i = 1; i < arr.length; i++) {
 		
-		arr.sort(numeric);
-		var currentDuplicationCount = 1;
-		var maxDuplicationCount = 1;
-		var maxDuplicationNumber;
-		var maxDuplicationNumber = arr[0];
+		if (isNaN(arr[i])) throw "Invalid data type in array";
 		
-		for (var i = 1; i < arr.length; i++) {
+		if (arr[i] == arr[i-1]) {
 			
-			if (isNaN(arr[i])) throw "Array not only contains numbers";
+			currentDuplicationCount++
+		
+		} else {
 			
-			if (arr[i] == arr[i-1]) {
+			if (currentDuplicationCount > maxDuplicationCount) {
 				
-				currentDuplicationCount++
-			
-			} else {
-				
-				if (currentDuplicationCount > maxDuplicationCount) {
-					
-					maxDuplicationCount = currentDuplicationCount;
-					maxDuplicationNumber = arr[i-1];
-					
-				}
-				
-				currentDuplicationCount = 1;
+				maxDuplicationCount = currentDuplicationCount;
+				maxDuplicationNumber = arr[i-1];
 				
 			}
 			
+			currentDuplicationCount = 1;
+			
 		}
-		
-		return maxDuplicationNumber;		
 		
 	}
 	
+	return maxDuplicationNumber;		
+
 }
 
 function mode(arr) {
@@ -256,7 +226,7 @@ function median(arr) {
 	var len = arr.length;
 	
 	if ( len % 2 == 0 ) {
-		return (arr[len/2+1] + arr[len/2]) / 2;
+		return (arr[len/2-1] + arr[len/2]) / 2;
 	} else {
 		return arr[Math.floor(len/2)];
 	}
@@ -267,15 +237,15 @@ Array.prototype.getIndex = function(val, reverse, multiple) {
 	
 	var start, end, limit, changeCount = 0, isFinished = false;
 	
-	if (reverse === undefined) {
+	if (reverse === true) {
+		start = this.length;
+		end = 0;
+	} else {
 		start = 0;
 		end = this.length;
-	} else {
-		start = this.length;
-		end = 0;		
 	}
 	
-	if (multiple === undefined) {
+	if ( (multiple === undefined) || (multiple === false) ) {
 		limit = 1;
 	} else if (multiple === 0) {
 		limit = this.length;
@@ -288,14 +258,14 @@ Array.prototype.getIndex = function(val, reverse, multiple) {
 	
 	do {
 		
-		if (reverse === undefined) {
+		if ( (reverse === undefined) || (reverse === false) )  {
 			i++;
 			if (i > end-1) isFinished = true;
 		} else {
 			i--;
 			if (i < end+1) isFinished = true;
 		}
-		
+
 		if (this[i] == val) {
 			changeCount++;
 			indexes.push(i);
@@ -303,7 +273,8 @@ Array.prototype.getIndex = function(val, reverse, multiple) {
 		
 	} while ( (changeCount < limit) && (!isFinished) );
 	
-	return indexes;
+	if (limit == 1) return indexes[0];
+	else return indexes;
 	
 }
 
@@ -311,6 +282,8 @@ Array.prototype.replace = function(originalVal, replaceWith, reverse, multiple) 
 	
 	var indexes = this.getIndex(originalVal, reverse, multiple)
 	console.log(indexes);
+	
+	if (indexes.constructor != Array) indexes = [indexes];
 	
 	for (var i = 0; i < indexes.length; i++) {
 		var index = indexes[i];
@@ -323,12 +296,21 @@ Array.prototype.removeElement = function(val, reverse, multiple) {
 	
 	var indexes = this.getIndex(val, reverse, multiple);
 	
+	if (indexes.constructor != Array) indexes = [indexes];
+	
 	for (var i = 0; i < indexes.length; i++) {
 		var index = indexes[i];
 		console.log(index);
 		console.log(indexes);
-		if (reverse === undefined) this.splice(index+i, 1);
-		else this.splice(index, 1);
+		console.log(this);
+		if ( (reverse === undefined) || (reverse === false) )
+			this.splice(index-i, 1);
+		else
+			this.splice(index, 1);
 	}
 	
+}
+
+function numeric(a, b) {
+	return a-b;
 }
